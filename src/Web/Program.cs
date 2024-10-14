@@ -1,11 +1,24 @@
 using Hangfire;
 using Hangfire.MemoryStorage;
+using Serilog;
 using WeatherLens.Application;
 using WeatherLens.Application.Messaging.SignalR;
+using WeatherLens.Application.WeatherForecasts.Queries;
 using WeatherLens.Infrastructure;
 using WeatherLens.Web;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+// Replace the default .NET logger with Serilog
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddKeyVaultIfConfigured(builder.Configuration);
@@ -35,8 +48,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseSerilogRequestLogging();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     //await app.InitialiseDatabaseAsync();
@@ -54,14 +67,12 @@ app.UseStaticFiles();
 app.MapHub<WeatherHub>("/weatherHub");
 
 app.MapEndpoints();
-//new WeatherLens.Web.Endpoints.UserSubscription().Map(app);
 
-// Use Swagger middleware
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "WeatherLens V1");
-    c.RoutePrefix = ""; 
+    c.RoutePrefix = "";
 });
 
 app.UseExceptionHandler(options => { });
@@ -77,13 +88,13 @@ var backgroundJobs = app.Services.GetRequiredService<IBackgroundJobClient>();
 RecurringJob.AddOrUpdate<IWeatherSubscriptionService>(
     "check-weather-updates",
     service => service.CheckForUpdatesAsync(),
-    Cron.Minutely); // Run every hour
+    Cron.Hourly); // Run every hour
 
-// Create a recurring job to fetch weather data every 2 hours
-//RecurringJob.AddOrUpdate<Scheduler>(
-//    "weather-fetch-job",
-//    job => job.FetchWeatherData(new GetWeatherForecastQuery { City = "London", Date = DateTime.Now }),
-//    Cron.Minutely());
+//Create a recurring job to fetch weather data every 2 hours
+RecurringJob.AddOrUpdate<Scheduler>(
+    "weather-fetch-job",
+   job => job.FetchWeatherData(new GetWeatherForecastQuery { City = "London", Date = DateTime.Now }),
+    Cron.Minutely());
 
 app.Run();
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
@@ -17,8 +18,11 @@ public class WeatherLensService : IWeatherService
     private readonly AsyncTimeoutPolicy _timeoutPolicy;
     private readonly AsyncFallbackPolicy<HttpResponseMessage> _fallbackPolicy;
     private readonly WeatherApiOptions _options;
+    private readonly ILogger<WeatherLensService> _logger;
 
-    public WeatherLensService(HttpClient httpClient, IOptions<WeatherApiOptions> weatherApiOptions)
+    public WeatherLensService(HttpClient httpClient, 
+        IOptions<WeatherApiOptions> weatherApiOptions, 
+        ILogger<WeatherLensService> logger)
     {
         _httpClient = httpClient;
 
@@ -40,6 +44,7 @@ public class WeatherLensService : IWeatherService
                Content = new StringContent("Weather data unavailable, please try again later.")
            });
         _options = weatherApiOptions.Value;
+        _logger = logger;
     }
 
     /// <summary>
@@ -66,7 +71,6 @@ public class WeatherLensService : IWeatherService
         var lat = (double?)locationData[0]["lat"];
         var lon = (double?)locationData[0]["lon"];
 
-        // Handle cases where lat or lon might still be null
         if (lat == null || lon == null)
         {
             throw new ArgumentException($"Coordinates for city '{city}' could not be determined.");
@@ -86,8 +90,8 @@ public class WeatherLensService : IWeatherService
     {
         var (lat, lon) = await GetCityCoordinates(city);
 
-        // Convert the date to Unix timestamp (required for past weather)
-        long unixTimestamp = ((DateTimeOffset)date.Date).ToUnixTimeSeconds();
+        // Convert the date to Unix timestamp (required for TimeMachineEndpoint)
+        //long unixTimestamp = ((DateTimeOffset)date.Date).ToUnixTimeSeconds();
 
         // Use historical data for past dates and forecast for future dates
         //string url = date.Date < DateTime.Now.Date
@@ -109,26 +113,20 @@ public class WeatherLensService : IWeatherService
             {
                 string content = await response.Content.ReadAsStringAsync();
                 var weatherResponse = JsonConvert.DeserializeObject<WeatherForecast>(content);
-                //Get closest forecast to required date since we using 2.5
+                //Get closest forecast to required date since we using 2.5 version
                 var result = GetClosestWeatherData(date.Date, weatherResponse!.List!);
                 return new Result<WeatherInfo>(result);
             }
             else
             {
+                _logger.LogError(response.ReasonPhrase, "Failed to retrieve weather data for city {City} on {Date}.", city, date);
                 return new Result<WeatherInfo>($"Error: {response.ReasonPhrase}");
             }
         }
-        catch (HttpRequestException ex)
-        {
-            return new Result<WeatherInfo>($"Request error: {ex.Message}");
-        }
-        catch (TimeoutRejectedException)
-        {
-            return new Result<WeatherInfo>("Request timed out.");
-        }
         catch (Exception ex)
         {
-            return new Result<WeatherInfo>($"Unexpected error: {ex.Message}");
+            _logger.LogError(ex, "An error occurred while processing the request for city {City} on {Date}", city, date);
+            return new Result<WeatherInfo>($"Request error: {ex.Message}");
         }
     }
 

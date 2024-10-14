@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using WeatherLens.Application.Messaging.SignalR;
 
 public class WeatherSubscriptionService : IWeatherSubscriptionService
@@ -9,22 +10,26 @@ public class WeatherSubscriptionService : IWeatherSubscriptionService
     private readonly IHubContext<WeatherHub> _hubContext;
     private readonly EmailService _emailService;
     private readonly IWeatherService _weatherService;
+    private readonly ILogger<WeatherSubscriptionService> _logger;
 
     // In-memory storage for subscriptions and weather data
     private readonly ConcurrentDictionary<string, UserSubscription> _subscriptions = new();
     private readonly ConcurrentDictionary<string, WeatherData> _weatherDataCache = new();
 
-    public WeatherSubscriptionService(ISender sender, IHubContext<WeatherHub> hubContext, EmailService emailService, IWeatherService weatherService)
+    public WeatherSubscriptionService(ISender sender, IHubContext<WeatherHub> hubContext,
+        EmailService emailService, IWeatherService weatherService,
+        ILogger<WeatherSubscriptionService> logger)
     {
         _sender = sender;
         _hubContext = hubContext;
         _emailService = emailService;
         _weatherService = weatherService;
+        _logger = logger;
     }
 
     public void Subscribe(UserSubscription userSubscription)
     {
-        _subscriptions[userSubscription.City + userSubscription.Email] = userSubscription; // Use a composite key for uniqueness
+        _subscriptions[userSubscription.City + userSubscription.Email] = userSubscription;
     }
 
     public void Unsubscribe(UserSubscription userSubscription)
@@ -57,28 +62,36 @@ public class WeatherSubscriptionService : IWeatherSubscriptionService
                     _weatherDataCache[subscription.City + DateTime.UtcNow.Date] = newWeatherData;
 
                     // Send email notification
-                    await SendEmailNotification(subscription.Email, newWeatherData);
+                    try
+                    {
+                        await SendEmailNotification(subscription.Email, newWeatherData);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occurred while sending the weather data {WeatherData} to {Email} ", newWeatherData, subscription.Email);
+                    }
                     subscription.LastNotifiedOn = DateTime.UtcNow; // Update the last notified timestamp
                 }
             }
             else
             {
-                // First time fetching data for this city
+                // First time fetching data for the specified city
                 _weatherDataCache[subscription.City + DateTime.UtcNow.Date] = newWeatherData;
-                await SendEmailNotification(subscription.Email, newWeatherData);
+                try
+                {
+                    await SendEmailNotification(subscription.Email, newWeatherData);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while sending the weather data {WeatherData} to {Email} ", newWeatherData, subscription.Email);
+                }
             }
         }
     }
-
     private bool HasWeatherChanged(WeatherData oldData, WeatherData newData)
     {
-        // Check for changes in the weather data fields you want to monitor
-        return oldData.Description != newData.Description ||
-               oldData.Temperature != newData.Temperature ||
-               oldData.TempMax != newData.TempMax ||
-               oldData.TempMin != newData.TempMin ||
-               oldData.Humidity != newData.Humidity ||
-               oldData.WindSpeed != newData.WindSpeed;
+        return typeof(WeatherData).GetProperties()
+                                  .Any(prop => !Equals(prop.GetValue(oldData), prop.GetValue(newData)));
     }
 
     private async Task SendEmailNotification(string email, WeatherData weatherData)

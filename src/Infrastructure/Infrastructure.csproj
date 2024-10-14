@@ -24,6 +24,9 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Polly.Core" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
   </ItemGroup>
 
   <ItemGroup>
