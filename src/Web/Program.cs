@@ -93,7 +93,7 @@ RecurringJob.AddOrUpdate<IWeatherSubscriptionService>(
 //Create a recurring job to fetch weather data every 2 hours
 RecurringJob.AddOrUpdate<Scheduler>(
     "weather-fetch-job",
-   job => job.FetchWeatherData(new GetWeatherForecastQuery { City = "London", Date = DateTime.Now }),
+   job => job.FetchWeatherData(new GetWeatherForecastQuery { City = "Tirana", Date = DateTime.Now }),
     Cron.Minutely());
 
 app.Run();
