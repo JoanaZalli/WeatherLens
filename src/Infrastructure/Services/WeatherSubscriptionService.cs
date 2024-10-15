@@ -32,9 +32,14 @@ public class WeatherSubscriptionService : IWeatherSubscriptionService
         _subscriptions[userSubscription.City + userSubscription.Email] = userSubscription;
     }
 
-    public void Unsubscribe(UserSubscription userSubscription)
+    public bool IsUserSubscribed(string email, string city)
     {
-        _subscriptions.TryRemove(userSubscription.City + userSubscription.Email, out _);
+        return _subscriptions.ContainsKey(city + email);
+    }
+
+    public void Unsubscribe(string email, string city)
+    {
+        _subscriptions.TryRemove(city + email, out _);
     }
 
     public async Task CheckForUpdatesAsync()

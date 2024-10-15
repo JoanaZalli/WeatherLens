@@ -2,8 +2,8 @@
 
 public class SubscribeUserCommand : IRequest<Result>
 {
-    public string Email { get; set; }
-    public string City { get; set; }
+    public required string Email { get; set; }
+    public required string City { get; set; }
 
     public SubscribeUserCommand(string email, string city)
     {
@@ -22,9 +22,9 @@ public class SubscribeUserCommandHandler : IRequestHandler<SubscribeUserCommand,
 
     public Task<Result> Handle(SubscribeUserCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.City))
+        if (_subscriptionService.IsUserSubscribed(request.Email, request.City))
         {
-            return Task.FromResult(Result.Failure(new[] { "An error occurred." }));
+            return Task.FromResult(Result.Failure(new[] { $"User already is subscribed  with email '{request.Email}' to updates for '{request.City}'." }));
         }
 
         // Create a new subscription
