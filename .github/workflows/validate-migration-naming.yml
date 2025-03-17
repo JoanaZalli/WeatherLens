@@ -13,7 +13,7 @@ jobs:
       - name: Check Migration File Naming
         run: |
           # Regex pattern for Visual Studio migration timestamp format
-          MIGRATION_PATTERN="^[0-9]{14}_[A-Za-z0-9]+\.cs$"
+          MIGRATION_PATTERN="^[0-9]{8}_[0-9]{6}_[A-Z][A-Za-z0-9]+_[A-Z][A-Za-z0-9]+\.cs$"
           
           # Get list of added/modified migration files
           INVALID_FILES=$(git diff --name-only origin/main | grep "Migrations/.*\.cs" | grep -vE "$MIGRATION_PATTERN" || true)
