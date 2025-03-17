@@ -98,4 +98,4 @@ RecurringJob.AddOrUpdate<Scheduler>(
 
 app.Run();
 
-public partial class Program { }
+public partial class Program { } 
