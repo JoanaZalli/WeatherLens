@@ -20,8 +20,8 @@ public class WeatherLensService : IWeatherService
     private readonly WeatherApiOptions _options;
     private readonly ILogger<WeatherLensService> _logger;
 
-    public WeatherLensService(HttpClient httpClient, 
-        IOptions<WeatherApiOptions> weatherApiOptions, 
+    public WeatherLensService(HttpClient httpClient,
+        IOptions<WeatherApiOptions> weatherApiOptions,
         ILogger<WeatherLensService> logger)
     {
         _httpClient = httpClient;
