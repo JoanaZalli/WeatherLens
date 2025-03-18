@@ -11,8 +11,8 @@ using WeatherLens.Infrastructure.Data;
 namespace WeatherLens.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250317164815_another_test")]
-    partial class another_test
+    [Migration("20250318101242_Initial_Test")]
+    partial class Initial_Test
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

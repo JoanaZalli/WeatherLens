@@ -5,7 +5,7 @@
 namespace WeatherLens.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class another_test : Migration
+    public partial class Initial_Test : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
