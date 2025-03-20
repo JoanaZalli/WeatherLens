@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+         fetch-depth: 0  # Fetch all history to ensure full history is available
 
       - name: Check Migration File Naming
         run: |

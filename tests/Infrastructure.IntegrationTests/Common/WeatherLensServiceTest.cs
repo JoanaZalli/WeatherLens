@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
@@ -12,6 +13,7 @@ public class WeatherLensServiceTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private readonly HttpClient _httpClient;
+    private readonly Logger<WeatherLensService> _logger;
     private readonly WeatherApiOptions _options;
     private readonly WeatherLensService _weatherService;
 
@@ -19,6 +21,7 @@ public class WeatherLensServiceTests
     {
         _httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         _httpClient = new HttpClient(_httpMessageHandlerMock.Object);
+        _logger = new Logger<WeatherLensService>(new LoggerFactory());
         _options = new WeatherApiOptions
         {
             BaseUrl = "https://api.openweathermap.org/data/2.5/",
@@ -29,7 +32,7 @@ public class WeatherLensServiceTests
             WeatherEndpoint = "/weather",
             Name = "Default"
         };
-        _weatherService = new WeatherLensService(_httpClient, Options.Create(_options));
+        _weatherService = new WeatherLensService(_httpClient, Options.Create(_options), _logger);
     }
 
     [Fact]
