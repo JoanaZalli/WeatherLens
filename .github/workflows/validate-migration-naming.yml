@@ -18,7 +18,7 @@ jobs:
           git fetch origin master:refs/remotes/origin/master
           
           # Get list of added/modified migration files
-          INVALID_FILES=$(git diff --name-only origin/master...HEAD | grep "Migrations/.*\.cs" | grep -vE "$MIGRATION_PATTERN" || true)
+          INVALID_FILES=$(git diff --name-only origin/master...HEAD | grep "Migrations/.*\.cs" | grep -vE "$MIGRATION_PATTERN" | grep -vE "(Designer\.cs|ModelSnapshot\.cs)$" || true)
 
           if [[ -n "$INVALID_FILES" ]]; then
               echo "❌ ERROR: The following migration files do not follow naming conventions:"
