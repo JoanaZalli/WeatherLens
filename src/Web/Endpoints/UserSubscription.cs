@@ -8,7 +8,7 @@ public class UserSubscription : EndpointGroupBase
     {
         app.MapPost("/api/subscribe", SubscribeUser);
         app.MapPut("/api/unsubscribe", UnsubscribeUser);
-    } 
+    }
 
     public async Task<Result> SubscribeUser(ISender sender, [FromBody] SubscribeUserCommand command)
     {
