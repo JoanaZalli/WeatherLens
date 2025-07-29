@@ -94,7 +94,7 @@ RecurringJob.AddOrUpdate<IWeatherSubscriptionService>(
 RecurringJob.AddOrUpdate<Scheduler>(
     "weather-fetch-job",
    job => job.FetchWeatherData(new GetWeatherForecastQuery { City = "Tirana", Date = DateTime.Now }),
-    Cron.Minutely());
+    Cron.Minutely);
 
 app.Run();
 
