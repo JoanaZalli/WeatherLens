@@ -14,22 +14,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2  # Needed to get the previous commit
-
-      - name: Get source branch from merge commit
-        id: source
-        run: |
-          # Get the previous commit
-          PARENT_COMMIT=$(git log -1 --pretty=%P | awk '{print $2}')
-          echo "PARENT_COMMIT=$PARENT_COMMIT" >> $GITHUB_ENV
-
-          # Find the branch name (must be a remote tracking branch)
-          BRANCH_NAME=$(git name-rev --name-only $PARENT_COMMIT | grep release/)
-          echo "SOURCE_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
-
+          
       - name: Extract version from branch name
         if: contains(env.SOURCE_BRANCH, 'release/')
         run: |
-          VERSION=$(echo "$SOURCE_BRANCH" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          VERSION="${{ github.event.pull_request.head.ref#release/ }}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Tagging with version v$VERSION"
 
