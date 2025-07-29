@@ -28,12 +28,13 @@ jobs:
       - name: Create and push tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ env.VERSION }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
+          
           git tag "v${VERSION}"
 
-          # ✅ Authenticate using GITHUB_TOKEN for private repo
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}
           git push origin "v${VERSION}"
