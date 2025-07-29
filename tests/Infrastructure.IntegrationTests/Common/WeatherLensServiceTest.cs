@@ -34,7 +34,7 @@ public class WeatherLensServiceTests
         };
         _weatherService = new WeatherLensService(_httpClient, Options.Create(_options), _loggerMock.Object);
     }
-
+     
     [Fact]
     public async Task GetWeatherDataAsync_ShouldReturnWeatherInfo_WhenApiCallIsSuccessful()
     {
