@@ -12,20 +12,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2  # Needed to get the previous commit
-          
+
       - name: Extract version from branch name
-        if: contains(env.SOURCE_BRANCH, 'release/')
         run: |
-          VERSION="${{ github.event.pull_request.head.ref#release/ }}"
+          # Get branch ref like refs/heads/release/1.1.1
+          REF_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Full ref: $REF_NAME"
+
+          # Remove release/ prefix
+          VERSION="${REF_NAME#release/}"
+          echo "Extracted version: $VERSION"
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Tagging with version v$VERSION"
 
       - name: Create and push tag
-        if: env.VERSION != ''
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git tag "v${VERSION}"
-          git push origin "v${VERSION}"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
