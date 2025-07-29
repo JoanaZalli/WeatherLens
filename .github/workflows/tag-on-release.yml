@@ -1,87 +1,9 @@
-name: Tag and Release on Merge
-
-on:
-  push:
-    branches:
-      - master
-
-jobs:
-  tag_release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get previous commit message
-        id: commit
-        run: |
-          echo "COMMIT_MSG=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
-
-      - name: Check if commit is from release/*
-        if: contains(env.COMMIT_MSG, 'release/')
-        run: |
-          echo "Detected merge from release branch."
-
-      - name: Extract version from commit message
-        if: contains(env.COMMIT_MSG, 'release/')
-        id: extract
-        run: |
-          VERSION=$(echo "$COMMIT_MSG" | grep -oE 'release/[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d/ -f2)
-          echo "VERSION=$VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Create and push tag
-        if: env.VERSION != ''
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag "v${VERSION}"
-          git push origin "v${VERSION}"
-💡 How It Works
-Triggers only on main pushes
-
-Checks commit message for a string like release/1.1.1 (e.g., "Merge pull request #42 from release/1.1.1")
-
-Extracts the version number 1.1.1
-
-Tags it as v1.1.1 and pushes to origin
-
-✅ How to Use It
-When merging release/1.1.1 into main, ensure the PR title or commit message includes the branch name (which GitHub includes by default)
-
-The tag will then be created and pushed automatically
-
-If you want it to work directly off the branch name instead of commit message, we can build a more complex workaround using the GitHub API or event payload. Just say the word if you want that!
-
-Would you also like to include a release note or changelog generation in this flow?
-
-
-
-
-
-
-
-
-You said:
-how to extract it from branch name
-
-
-ChatGPT said:
-To extract the version from the source branch name (e.g. release/1.1.1) instead of parsing the commit message, you can use the GITHUB_HEAD_REF or github.event.pull_request.head.ref — depending on whether you're in a pull request or push event.
-
-Since you want to tag after merging release/x.y.z into main, we’ll trigger this action on push to main and parse the branch it was merged from by looking into the Git history.
-
-✅ GitHub Action: Auto-tag on main push from release/* (using Git history)
-yaml
-Copy
-Edit
 name: Tag Release on Merge from release/*
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   tag_release:
