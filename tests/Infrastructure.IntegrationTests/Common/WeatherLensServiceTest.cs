@@ -7,7 +7,7 @@ using Moq.Protected;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WeatherLens.Application;
-using Xunit; 
+using Xunit;
 
 public class WeatherLensServiceTests
 {
