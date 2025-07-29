@@ -36,5 +36,7 @@ jobs:
           
           git tag "v${VERSION}"
 
+          echo "Token prefix: ${GITHUB_TOKEN:0:6}******"
+
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}
           git push origin "v${VERSION}"
