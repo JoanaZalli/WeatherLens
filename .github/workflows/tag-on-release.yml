@@ -1,40 +1,29 @@
 name: Tag and Release on Merge
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - master
 
 jobs:
   tag_release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2  # Needed to get the previous commit
-
-      - name: Get source branch from merge commit
-        id: source
-        run: |
-          # Get the previous commit
-          PARENT_COMMIT=$(git log -1 --pretty=%P | awk '{print $2}')
-          echo "PARENT_COMMIT=$PARENT_COMMIT" >> $GITHUB_ENV
-
-          # Find the branch name (must be a remote tracking branch)
-          BRANCH_NAME=$(git name-rev --name-only $PARENT_COMMIT | grep release/)
-          echo "SOURCE_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Extract version from branch name
-        if: contains(env.SOURCE_BRANCH, 'release/')
+        id: extract
         run: |
-          VERSION=$(echo "$SOURCE_BRANCH" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH_NAME#release/}"
+          echo "VERSION=$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Tagging with version v$VERSION"
 
       - name: Create and push tag
-        if: env.VERSION != ''
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
