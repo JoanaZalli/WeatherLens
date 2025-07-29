@@ -6,6 +6,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write  # ✅ Required to allow tag pushing in private repos
+
 jobs:
   tag_release:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
@@ -16,7 +19,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Extract version from branch name
-        id: extract
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION="${BRANCH_NAME#release/}"
@@ -24,8 +26,14 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
           git tag "v${VERSION}"
+
+          # ✅ Authenticate using GITHUB_TOKEN for private repo
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin "v${VERSION}"
