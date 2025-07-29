@@ -35,7 +35,7 @@ jobs:
           git config user.email "github-actions@github.com"
           
           git tag "v${VERSION}"
-
+          echo "test"
           echo "Token prefix: ${GITHUB_TOKEN:0:6}******"
 
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}
