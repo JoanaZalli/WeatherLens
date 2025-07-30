@@ -4,8 +4,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - 'release/**'
-  workflow_dispatch:  # 👈 Allows manual trigger and local `act` testing
+      - master
 
 permissions:
   contents: write  # ✅ Required to allow tag pushing in private repos
@@ -22,31 +21,16 @@ jobs:
       - name: Extract version from branch name
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          echo "🔍 Branch Name: $BRANCH_NAME"
-          
           VERSION="${BRANCH_NAME#release/}"
           echo "VERSION=$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          if [[ "$BRANCH_NAME" == release/* ]]; then
-            VERSION="${BRANCH_NAME#release/}"
-            echo "✅ Extracted version: $VERSION"
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-          else
-            echo "❌ Not a release/* branch. Skipping."
-            exit 1
-          fi
-
       - name: Create and push tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          VERSION: ${{ env.VERSION }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          
           git tag "v${VERSION}"
-          echo "Token prefix: ${GITHUB_TOKEN:0:6}******"
-
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}
+          # ✅ Authenticate using GITHUB_TOKEN for private repo
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin "v${VERSION}"
