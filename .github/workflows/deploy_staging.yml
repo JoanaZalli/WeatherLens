@@ -1,53 +1,23 @@
-name: Release Manually
+name: Deploy to Staging
 
 on:
- workflow_dispatch:
+  workflow_dispatch:
     inputs:
       branch:
-        description: 'Release branch to tag (e.g., release/1.2.3)'
+        description: 'Release branch to deploy'
         required: true
 
-permissions:
-  contents: write  # ✅ Required to allow tag pushing in private repos
-
 jobs:
-  tag_release:
+  deploy_staging:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout selected branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ inputs.branch }}
 
-      - name: Extract version from branch name
-        id: version
+      - name: Deploy to staging
         run: |
-          BRANCH_NAME="${{ github.event.inputs.branch }}"
-          echo "🔍 Selected branch: $BRANCH_NAME"
-
-          if [[ "$BRANCH_NAME" == release/* ]]; then
-            VERSION="${BRANCH_NAME#release/}"
-            echo "✅ Extracted version: $VERSION"
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-          else
-            echo "❌ Invalid branch. Must start with 'release/'."
-            exit 1
-          fi
-
-      - name: Create and push tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          VERSION: ${{ env.VERSION }}
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          # Create tag
-          git tag "v${VERSION}"
-          echo "🔖 Creating tag: v${VERSION}"
-
-          # Push tag to origin
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}
-          git push origin "v${VERSION}"
+          echo "✅ Deploying branch ${{ inputs.branch }} to staging..."
+          # Add your real deployment logic here (e.g., SSH, docker build, kubectl, etc)
