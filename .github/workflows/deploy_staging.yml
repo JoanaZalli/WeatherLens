@@ -21,3 +21,22 @@ jobs:
         run: |
           echo "✅ Deploying branch ${{ inputs.branch }} to staging..."
           # Add your real deployment logic here (e.g., SSH, docker build, kubectl, etc)
+
+      - name: Tag the branch as staging
+        if: success()  # Only run if previous steps succeeded
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.event.inputs.branch }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          # Fetch full branch history
+          git fetch origin "$BRANCH" --depth=1
+
+          # Checkout the branch
+          git checkout "$BRANCH"
+
+          # Create or move the 'staging' tag to this branch
+          git tag -f staging
+          git push origin -f staging
