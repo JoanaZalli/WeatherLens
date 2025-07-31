@@ -1,0 +1,15 @@
+{
+  "pull_request": {
+    "merged": true,
+    "head": {
+      "ref": "release/1.2.0"
+    },
+    "base": {
+      "ref": "master"
+    }
+  },
+  "repository": {
+    "full_name": "JoanaZalli/WeatherLens"
+  },
+  "event_name": "pull_request"
+}
